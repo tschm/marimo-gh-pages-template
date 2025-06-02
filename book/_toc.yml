@@ -1,0 +1,7 @@
+# Table of contents
+# Learn more at https://jupyterbook.org/customize/toc.html
+format: jb-book
+root: docs/index
+chapters:
+    - url: https://tschm.github.io/marimo-gh-pages-template/notebooks/elvis.html
+      title: Elivs effect

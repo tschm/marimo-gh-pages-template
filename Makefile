@@ -47,7 +47,7 @@ marimo: install ## Install Marimo
 # Build the Jupyter Book documentation
 .PHONY: book
 book: install ## Compile the book
-	@uv pip install --no-cache-dir  jupyterlab jupyter-book
+	@uv pip install --no-cache-dir jupyter-book
 	@uv run jupyter-book clean book
 	@uv run jupyter-book build book
 	touch book/_build/html/.nojekyll
