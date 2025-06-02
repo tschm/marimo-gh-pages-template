@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.6"
+__generated_with = "0.13.15"
 app = marimo.App()
 
 
@@ -8,10 +8,10 @@ app = marimo.App()
 def _(mo):
     mo.md(
         r"""
-        # Fibonacci Calculator
+    # Fibonacci Calculator
 
-        Use the slider above to calculate the first {n.value} numbers in the Fibonacci sequence.
-        """
+    Use the slider above to calculate the first {n.value} numbers in the Fibonacci sequence.
+    """
     )
     return
 
@@ -25,28 +25,26 @@ def _(mo):
 
 
 @app.cell
-def _(fibonacci, mo, n):
+def _(mo, n):
     fib = fibonacci(n.value)
     mo.md(", ".join([str(f) for f in fib]))
-    return (fib,)
+    return
+
+
+@app.function
+# Generate Fibonacci sequence
+def fibonacci(n):
+    sequence = [0, 1]
+    for i in range(2, n):
+        sequence.append(sequence[i - 1] + sequence[i - 2])
+    return sequence
 
 
 @app.cell
 def _():
-    # Generate Fibonacci sequence
-    def fibonacci(n):
-        sequence = [0, 1]
-        for i in range(2, n):
-            sequence.append(sequence[i - 1] + sequence[i - 2])
-        return sequence
-    return (fibonacci,)
-
-
-@app.cell
-def _():
-    import numpy as np
     import marimo as mo
-    return mo, np
+
+    return (mo,)
 
 
 if __name__ == "__main__":

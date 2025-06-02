@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.9"
+__generated_with = "0.13.15"
 app = marimo.App(width="medium")
 
 
@@ -9,6 +9,7 @@ def _():
     import polars as pl
     import marimo as mo
     import altair as alt
+
     return alt, mo, pl
 
 
@@ -16,10 +17,10 @@ def _():
 def _(mo):
     mo.md(
         """
-        # Palmer Penguins Analysis
+    # Palmer Penguins Analysis
 
-        Analyzing the Palmer Penguins dataset using Polars and marimo.
-        """
+    Analyzing the Palmer Penguins dataset using Polars and marimo.
+    """
     )
     return
 
@@ -39,7 +40,7 @@ def _(df, mo):
     ### Dataset Overview
 
     - Total records: {df.height}
-    - Columns: {', '.join(df.columns)}
+    - Columns: {", ".join(df.columns)}
 
     ### Summary Statistics
 
@@ -66,7 +67,7 @@ def _(alt, df, mo):
     )
 
     species_chart
-    return (species_chart,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -92,7 +93,7 @@ def _(alt, df, mo):
     )
 
     scatter
-    return (scatter,)
+    return
 
 
 if __name__ == "__main__":
