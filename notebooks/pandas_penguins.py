@@ -9,8 +9,7 @@ def _():
     import marimo as mo
     import pandas as pd
     import polars as pl
-    import pyarrow as pa
-    return mo, pl
+    return mo, pd, pl
 
 
 @app.cell
@@ -20,22 +19,15 @@ def _(mo):
     return (file_str,)
 
 
-app._unparsable_cell(
-    r"""
-    pd.read_csv(file_str)d
-    """,
-    name="_"
-)
+@app.cell
+def _(file_str, pd):
+    pd.read_csv(file_str)
+    return
 
 
 @app.cell
 def _(file_str, pl):
     pl.read_csv(file_str)
-    return
-
-
-@app.cell
-def _():
     return
 
 
