@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "marimo==0.13.15",
+#     "polars==1.30.0",
+#     "altair==4.2.0",
+# ]
+# ///
 import marimo
 
 __generated_with = "0.13.5"
@@ -8,6 +16,7 @@ with app.setup:
     import polars as pl
     import altair as alt
 
+    file = mo.notebook_location() / "public" / "penguins.csv"
 
 @app.cell(hide_code=True)
 def _():
@@ -24,7 +33,7 @@ def _():
 @app.cell
 def _():
     # Read the penguins dataset
-    df = pl.read_csv(str(mo.notebook_location() / "public" / "penguins.csv"))
+    df = pl.read_csv(str(file))
     df.head()
     return (df,)
 
