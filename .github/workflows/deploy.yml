@@ -63,7 +63,7 @@ jobs:
             mkdir -p _site/apps/$filename
             
             # Export in edit mode to allow users to modify the notebook
-            uvx marimo export html-wasm --sandbox $notebook -o _site/apps/$filename/index.html --mode rim --no-show-code
+            uvx marimo export html-wasm --sandbox $notebook -o _site/apps/$filename/index.html --mode run --no-show-code
           done
           
 
