@@ -1,5 +1,5 @@
 marimo==0.13.15
-numpy==2.2.6
+numpy==2.3.0
 altair==5.5.0
 polars==1.30.0
 pandas==2.2.3
