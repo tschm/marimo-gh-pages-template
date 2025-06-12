@@ -14,6 +14,11 @@ help:  ## Display this help screen
 	@grep -E '^[a-z.A-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' | sort
 
 # Install and run Marimo for interactive notebooks
-.PHONY: marimo
-marimo: uv ## Install Marimo and start server to edit marimo notebooks
+.PHONY: notebooks
+notebooks: uv ## Install Marimo and start server to edit marimo notebooks
 	@uvx marimo edit --sandbox notebooks/$(NOTEBOOK).
+
+# Install and run Marimo for interactive notebooks
+.PHONY: apps
+apps: uv ## Install Marimo and start server to edit marimo notebooks
+	@uvx marimo edit --sandbox apps/$(APPS).
