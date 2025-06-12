@@ -30,22 +30,43 @@ jobs:
       - name: 🚀 Install uv
         uses: astral-sh/setup-uv@v6
 
-      # obsolete as done in the setup-uv step
-      # Set up Python environment
-      #- name: 🐍 Set up Python
-      #  uses: actions/setup-python@v5
-      #  with:
-      #    python-version: 3.12  # Use Python 3.12 for the build
+      # Convert all Marimo notebooks to HTML-WASM format
+      # The WASM format allows for interactive elements to work in the browser
+      - name: Convert notebooks to HTML-WASM
+        run: |
+          mkdir -p _site/notebooks
 
-      # Install marimo and other required dependencies
-      # - name: 📦 Install dependencies
-      #   run: |
-      #      uv pip install marimo
+          # Find all Python files in the notebooks directory and export them to HTML-WASM
+          for notebook in notebooks/*.py; do
+            # Extract the filename without extension
+            filename=$(basename "$notebook" .py)
+            echo "Exporting $notebook to HTML-WASM..."
+
+            # Export in edit mode to allow users to modify the notebook
+            uvx marimo export html-wasm --sandbox $notebook -o _site/notebooks/$filename.html --mode edit
+          done
+
+      # Convert all Marimo apps to HTML-WASM format
+      # The WASM format allows for interactive elements to work in the browser
+      - name: Convert notebooks to HTML-WASM
+        run: |
+          mkdir -p _site/apps
+
+          # Find all Python files in the notebooks directory and export them to HTML-WASM
+          for notebook in apps/*.py; do
+            # Extract the filename without extension
+            filename=$(basename "$notebook" .py)
+            echo "Exporting $notebook to HTML-WASM..."
+
+            # Export in edit mode to allow users to modify the notebook
+            uvx marimo export html-wasm --sandbox $notebook -o _site/apps/$filename.html --mode rim --no-show-code
+          done
+          
 
       # Run the build script to export notebooks to WebAssembly
-      - name: 🛠️ Export notebooks
-        run: |
-          python .github/scripts/build.py  # This script exports all notebooks to the _site directory
+      #- name: 🛠️ Export notebooks
+      #  run: |
+      #    python .github/scripts/build.py  # This script exports all notebooks to the _site directory
 
       # Upload the generated site as an artifact for the deploy job
       - name: 📤 Upload artifact

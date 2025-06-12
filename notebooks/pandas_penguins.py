@@ -1,3 +1,11 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#     "marimo==0.13.15",
+#     "pandas==2.3.0",
+#     "polars==1.30.0"
+# ]
+# ///
 import marimo
 
 __generated_with = "0.13.15"
@@ -8,23 +16,18 @@ with app.setup:
     import pandas as pd
     import polars as pl
 
+    file = mo.notebook_location() / "public" / "penguins.csv"
+
 
 @app.cell
 def _():
-    _file = mo.notebook_location() / "public" / "penguins.csv"
-    file_str = str(_file)
-    return (file_str,)
-
-
-@app.cell
-def _(file_str):
-    pd.read_csv(file_str)
+    pd.read_csv(str(file))
     return
 
 
 @app.cell
-def _(file_str):
-    pl.read_csv(file_str)
+def _():
+    pl.read_csv(str(file))
     return
 
 
