@@ -1,19 +1,16 @@
 import marimo
 
-__generated_with = "0.10.9"
+__generated_with = "0.13.5"
 app = marimo.App(width="medium")
 
-
-@app.cell
-def _():
-    import polars as pl
+with app.setup:
     import marimo as mo
+    import polars as pl
     import altair as alt
-    return alt, mo, pl
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(
         """
         # Palmer Penguins Analysis
@@ -25,7 +22,7 @@ def _(mo):
 
 
 @app.cell
-def _(mo, pl):
+def _():
     # Read the penguins dataset
     df = pl.read_csv(str(mo.notebook_location() / "public" / "penguins.csv"))
     df.head()
@@ -33,7 +30,7 @@ def _(mo, pl):
 
 
 @app.cell
-def _(df, mo):
+def _(df):
     # Basic statistics
     mo.md(f"""
     ### Dataset Overview
@@ -49,13 +46,13 @@ def _(df, mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Species Distribution""")
     return
 
 
 @app.cell
-def _(alt, df, mo):
+def _(df):
     # Create species distribution chart
     species_chart = mo.ui.altair_chart(
         alt.Chart(df)
@@ -70,13 +67,13 @@ def _(alt, df, mo):
 
 
 @app.cell(hide_code=True)
-def _(mo):
+def _():
     mo.md(r"""### Bill Dimensions Analysis""")
     return
 
 
 @app.cell
-def _(alt, df, mo):
+def _(df):
     # Scatter plot of bill dimensions
     scatter = mo.ui.altair_chart(
         alt.Chart(df)
