@@ -42,8 +42,10 @@ jobs:
             filename=$(basename "$notebook" .py)
             echo "Exporting $notebook to HTML-WASM..."
 
+            mkdir -p _site/notebooks/$filename
+            
             # Export in edit mode to allow users to modify the notebook
-            uvx marimo export html-wasm --sandbox $notebook -o _site/notebooks/$filename.html --mode edit
+            uvx marimo export html-wasm --sandbox $notebook -o _site/notebooks/$filename/index.html --mode edit
           done
 
       # Convert all Marimo apps to HTML-WASM format
@@ -58,8 +60,10 @@ jobs:
             filename=$(basename "$notebook" .py)
             echo "Exporting $notebook to HTML-WASM..."
 
+            mkdir -p _site/apps/$filename
+            
             # Export in edit mode to allow users to modify the notebook
-            uvx marimo export html-wasm --sandbox $notebook -o _site/apps/$filename.html --mode rim --no-show-code
+            uvx marimo export html-wasm --sandbox $notebook -o _site/apps/$filename/index.html --mode rim --no-show-code
           done
           
 
