@@ -3,18 +3,15 @@ import marimo
 __generated_with = "0.10.9"
 app = marimo.App(width="medium")
 
-
-@app.cell
-def _():
+with app.setup:
     import numpy as np
     import altair as alt
     import pandas as pd
     import marimo as mo
-    return alt, mo, np, pd
 
 
 @app.cell
-def _(mo):
+def _():
     mo.md(
         """
         # Interactive Data Visualization
@@ -29,7 +26,7 @@ def _(mo):
 
 
 @app.cell
-def _(alt, mo, np, pd):
+def _():
     # Create sample data
     data = pd.DataFrame({"x": np.arange(100), "y": np.random.normal(0, 1, 100)})
 
@@ -43,7 +40,7 @@ def _(alt, mo, np, pd):
         )
     )
     chart
-    return chart, data
+    return chart
 
 
 @app.cell
