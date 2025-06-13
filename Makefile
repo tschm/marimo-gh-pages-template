@@ -5,7 +5,6 @@
 
 # Install uv and uvx
 uv:
-uv:
 	@which uv > /dev/null || (curl -LsSf https://astral.sh/uv/install.sh | sh > /dev/null 2>&1)
 
 # Display help information about available make targets
@@ -58,7 +57,5 @@ dryrun: ## Build the website locally using the same process as CI/CD but publish
 	@echo "Copying assets..."
 	@cp -r apps/public/logo.png _site/assets/logo.png
 
-	@echo "Generating index.html..."
-	@cp .github/workflows/index_template.html _site/index.html
-
+	@uv run .github/scripts/render_template.py .github/workflows/index_template.html _site/index.html
 	@echo "Website built successfully! Open _site/index.html in your browser to view it."
