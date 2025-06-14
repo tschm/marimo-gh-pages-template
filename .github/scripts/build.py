@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Build script for marimo notebooks.
 
@@ -19,6 +18,7 @@ The exported files will be placed in the specified output directory (default: _s
 # ]
 # ///
 
+import warnings
 import subprocess
 import argparse
 from typing import List
@@ -26,7 +26,7 @@ from pathlib import Path
 import jinja2
 
 
-def export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = False) -> bool:
+def _export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = False) -> bool:
     """Export a single marimo notebook to HTML/WebAssembly format.
 
     This function takes a marimo notebook (.py file) and exports it to HTML/WebAssembly format.
@@ -70,16 +70,16 @@ def export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = False
         return True
     except subprocess.CalledProcessError as e:
         # Handle marimo export errors
-        print(f"Error exporting {notebook_path}:")
-        print(e.stderr)
+        warnings.warn(f"Error exporting {notebook_path}:")
+        warnings.warn(e.stderr)
         return False
     except Exception as e:
         # Handle unexpected errors
-        print(f"Unexpected error exporting {notebook_path}: {e}")
+        warnings.warn(f"Unexpected error exporting {notebook_path}: {e}")
         return False
 
 
-def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
+def generate_index(output_dir: Path, notebooks_data: List[dict] | None = None, apps_data: List[dict] | None = None) -> None:
     """Generate an index.html file that lists all the notebooks.
 
     This function creates an HTML index page that displays links to all the exported
@@ -87,7 +87,8 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
     with a formatted title and a link to open it.
 
     Args:
-        all_notebooks (List[Path]): List of paths to all the notebooks
+        notebooks_data (List[dict]): List of dictionaries with data for notebooks
+        apps_data (List[dict]): List of dictionaries with data for apps
         output_dir (Path): Directory where the index.html file will be saved
 
     Returns:
@@ -100,12 +101,10 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
 
     # Ensure the output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
-    #os.makedirs(output_dir, exist_ok=True)
 
     try:
         # Set up Jinja2 environment
         template_dir = Path(__file__).parent / "templates"
-            #os.path.join(os.path.dirname(__file__), "templates"))
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(template_dir),
             autoescape=jinja2.select_autoescape(["html", "xml"])
@@ -113,32 +112,6 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
 
         # Load the template
         template = env.get_template("index.html.j2")
-
-        # Prepare notebook and app data for the template
-        notebooks_data = []
-        apps_data = []
-
-        for notebook in all_notebooks:
-            # Extract the notebook name from the path and remove the .py extension
-            notebook_name: str = notebook.stem
-
-            # Format the display name by replacing underscores with spaces and capitalizing
-            display_name: str = notebook_name.replace("_", " ").title()
-
-            # Determine if it's an app or a notebook
-            is_app = str(notebook).startswith("apps/")
-
-            # Create the data dictionary
-            item_data = {
-                "display_name": display_name,
-                "html_path": str(notebook.with_suffix(".html")),
-            }
-
-            # Add to the appropriate list
-            if is_app:
-                apps_data.append(item_data)
-            else:
-                notebooks_data.append(item_data)
 
         # Render the template with notebook and app data
         rendered_html = template.render(notebooks=notebooks_data, apps=apps_data)
@@ -155,14 +128,54 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
         print(f"Error rendering template: {e}")
 
 
+def export(folder: Path, output_dir: Path, as_app: bool=False) -> List[dict]:
+    """Export all marimo notebooks in a folder to HTML/WebAssembly format.
+
+    This function finds all Python files in the specified folder and exports them
+    to HTML/WebAssembly format using the export_html_wasm function. It returns a
+    list of dictionaries containing the data needed for the template.
+
+    Args:
+        folder (Path): Path to the folder containing marimo notebooks
+        output_dir (Path): Directory where the exported HTML files will be saved
+        as_app (bool, optional): Whether to export as apps (run mode) or notebooks (edit mode).
+
+    Returns:
+        List[dict]: List of dictionaries with "display_name" and "html_path" for each notebook
+    """
+    # Check if the folder exists
+    if not folder.exists():
+        warnings.warn(f"Directory not found: {folder}")
+        return []
+
+    # Find all Python files recursively in the folder
+    notebooks = list(folder.rglob("*.py"))
+
+    # Exit if no notebooks were found
+    if not notebooks:
+        warnings.warn(f"No notebooks found in {folder}!")
+        return []
+
+    # For each successfully exported notebook, add its data to the notebook_data list
+    notebook_data = [
+        {
+            "display_name": (nb.stem.replace("_", " ").title()),
+            "html_path": str(nb.with_suffix(".html")),
+        }
+        for nb in notebooks
+        if _export_html_wasm(nb, output_dir, as_app=as_app)
+    ]
+
+    return notebook_data
+
+
 def main() -> None:
     """Main function to build marimo notebooks.
 
     This function:
     1. Parses command line arguments
-    2. Finds all marimo notebooks in the 'notebooks' and 'apps' directories
-    3. Exports each notebook to HTML/WebAssembly format
-    4. Generates an index.html file that lists all the notebooks
+    2. Exports all marimo notebooks in the 'notebooks' and 'apps' directories
+    3. Generates an index.html file that lists all the notebooks
 
     Command line arguments:
         --output-dir: Directory where the exported files will be saved (default: _site)
@@ -180,32 +193,19 @@ def main() -> None:
     # Convert output_dir to Path
     output_dir: Path = Path(args.output_dir)
 
-    # Initialize empty list to store all notebook paths
-    all_notebooks: List[Path] = []
+    # Export notebooks from the notebooks/ directory
+    notebooks_data = export(Path("notebooks"), output_dir, as_app=False)
 
-    # Look for notebooks in both the notebooks/ and apps/ directories
-    for directory in ["notebooks", "apps"]:
-        dir_path: Path = Path(directory)
-        if not dir_path.exists():
-            print(f"Warning: Directory not found: {dir_path}")
-            continue
+    # Export apps from the apps/ directory
+    apps_data = export(Path("apps"), output_dir, as_app=True)
 
-        # Find all Python files recursively in the directory
-        all_notebooks.extend(path for path in dir_path.rglob("*.py"))
-
-    # Exit if no notebooks were found
-    if not all_notebooks:
-        print("No notebooks found!")
+    # Exit if no notebooks or apps were found
+    if not notebooks_data and not apps_data:
+        warnings.warn("No notebooks or apps found!")
         return
 
-    # Export each notebook to HTML/WebAssembly format
-    # Files in the apps/ directory are exported as apps (run mode)
-    # Files in the notebooks/ directory are exported as notebooks (edit mode)
-    for nb in all_notebooks:
-        export_html_wasm(nb, output_dir, as_app=str(nb).startswith("apps/"))
-
-    # Generate the index.html file that lists all notebooks
-    generate_index(all_notebooks, output_dir)
+    # Generate the index.html file that lists all notebooks and apps
+    generate_index(output_dir=output_dir, notebooks_data=notebooks_data, apps_data=apps_data)
 
 
 if __name__ == "__main__":
