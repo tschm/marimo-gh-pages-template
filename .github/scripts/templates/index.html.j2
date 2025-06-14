@@ -94,22 +94,38 @@
         <p class="subtitle">Interactive Python notebooks exported to WebAssembly and deployed to GitHub Pages</p>
       </div>
     </header>
-  
-    <div class="grid gap-4">
+
+    <main class="container">
+
+    <h2 class="section-title">Notebooks</h2>
+    <p>Interactive notebooks in edit mode - you can modify and experiment with the code</p>
+    <div class="cards">
       {% for notebook in notebooks %}
-      <div class="p-4 border border-gray-200 rounded {% if notebook.is_app %}border-blue-300{% else %}border-green-300{% endif %}">
-        <h3 class="text-lg font-semibold mb-2">{{ notebook.display_name }}</h3>
-        <div class="flex gap-2">
-          {% if notebook.is_app %}
-          <a href="{{ notebook.html_path }}" class="px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded">Open App</a>
-          {% else %}
-          <a href="{{ notebook.html_path }}" class="px-3 py-1 bg-green-100 hover:bg-green-200 rounded">Open Notebook</a>
-          {% endif %}
+      <!-- {{ notebook.display_name }} Notebook -->
+      <div class="card">
+        <div class="card-header">{{ notebook.display_name }}</div>
+        <div class="card-body">
+          <a href="{{ notebook.html_path }}" class="card-link">Open Notebook</a>
         </div>
       </div>
       {% endfor %}
     </div>
-    
+
+    <h2 class="section-title">Apps</h2>
+    <p>Interactive applications in run mode - code is hidden for a clean user interface</p>
+    <div class="cards">
+      {% for app in apps %}
+      <!-- {{ app.display_name }} App -->
+      <div class="card">
+        <div class="card-header app">{{ app.display_name }}</div>
+        <div class="card-body">
+          <a href="{{ app.html_path }}" class="card-link app">Open App</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </main>
+
     <footer>
       <div class="container">
         <p>Built with <a href="https://marimo.io" target="_blank">marimo</a> - Interactive Python notebooks</p>

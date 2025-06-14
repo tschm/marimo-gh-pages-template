@@ -114,8 +114,10 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
         # Load the template
         template = env.get_template("index.html.j2")
 
-        # Prepare notebook data for the template
+        # Prepare notebook and app data for the template
         notebooks_data = []
+        apps_data = []
+
         for notebook in all_notebooks:
             # Extract the notebook name from the path and remove the .py extension
             notebook_name: str = notebook.stem
@@ -123,15 +125,23 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
             # Format the display name by replacing underscores with spaces and capitalizing
             display_name: str = notebook_name.replace("_", " ").title()
 
-            # Add notebook data to the list
-            notebooks_data.append({
+            # Determine if it's an app or a notebook
+            is_app = str(notebook).startswith("apps/")
+
+            # Create the data dictionary
+            item_data = {
                 "display_name": display_name,
                 "html_path": str(notebook.with_suffix(".html")),
-                "is_app": str(notebook).startswith("apps/")
-            })
+            }
 
-        # Render the template with notebook data
-        rendered_html = template.render(notebooks=notebooks_data)
+            # Add to the appropriate list
+            if is_app:
+                apps_data.append(item_data)
+            else:
+                notebooks_data.append(item_data)
+
+        # Render the template with notebook and app data
+        rendered_html = template.render(notebooks=notebooks_data, apps=apps_data)
 
         # Write the rendered HTML to the index.html file
         with open(index_path, "w") as f:
