@@ -97,10 +97,14 @@
   
     <div class="grid gap-4">
       {% for notebook in notebooks %}
-      <div class="p-4 border border-gray-200 rounded">
+      <div class="p-4 border border-gray-200 rounded {% if notebook.is_app %}border-blue-300{% else %}border-green-300{% endif %}">
         <h3 class="text-lg font-semibold mb-2">{{ notebook.display_name }}</h3>
         <div class="flex gap-2">
-          <a href="{{ notebook.html_path }}" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded">Open Notebook</a>
+          {% if notebook.is_app %}
+          <a href="{{ notebook.html_path }}" class="px-3 py-1 bg-blue-100 hover:bg-blue-200 rounded">Open App</a>
+          {% else %}
+          <a href="{{ notebook.html_path }}" class="px-3 py-1 bg-green-100 hover:bg-green-200 rounded">Open Notebook</a>
+          {% endif %}
         </div>
       </div>
       {% endfor %}
