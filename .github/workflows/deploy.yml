@@ -23,9 +23,9 @@ jobs:
   build:
     runs-on: ubuntu-latest  # Use the latest Ubuntu runner
     steps:
-      - uses: tschm/marimograd/actions/export@main
-        #with:
-        #  template: 'templates/index.html.j2'
+      - uses: tschm/marimushka/actions/export@main
+        with:
+          template: 'templates/bare.html.j2'
         # declare which template
         # delcare folder names
 
