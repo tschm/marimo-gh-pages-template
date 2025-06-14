@@ -126,7 +126,8 @@ def generate_index(all_notebooks: List[Path], output_dir: Path) -> None:
             # Add notebook data to the list
             notebooks_data.append({
                 "display_name": display_name,
-                "html_path": str(notebook.with_suffix(".html"))
+                "html_path": str(notebook.with_suffix(".html")),
+                "is_app": str(notebook).startswith("apps/")
             })
 
         # Render the template with notebook data
