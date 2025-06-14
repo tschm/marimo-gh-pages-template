@@ -6,7 +6,7 @@ an index.html file that lists all the notebooks. It handles both regular noteboo
 (from the notebooks/ directory) and apps (from the apps/ directory).
 
 The script can be run from the command line with optional arguments:
-    python .github/scripts/build.py [--output-dir OUTPUT_DIR]
+    uv run .github/scripts/build.py [--output-dir OUTPUT_DIR]
 
 The exported files will be placed in the specified output directory (default: _site).
 """
@@ -14,17 +14,28 @@ The exported files will be placed in the specified output directory (default: _s
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "jinja2==3.1.3"
+#     "jinja2==3.1.3",
+#     "fire==0.7.0",
+#     "loguru==0.7.0"
 # ]
 # ///
 
-import warnings
 import subprocess
-import argparse
-from typing import List
+from typing import List, Union
 from pathlib import Path
-import jinja2
 
+import jinja2
+import fire
+
+from loguru import logger
+
+# Configure logging
+# logging.basicConfig(
+#    level=logging.INFO,
+#    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#    datefmt='%Y-%m-%d %H:%M:%S'
+# )
+# logger = logging.getLogger("marimo-build")
 
 def _export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = False) -> bool:
     """Export a single marimo notebook to HTML/WebAssembly format.
@@ -50,10 +61,10 @@ def _export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = Fals
 
     # Configure export mode based on whether it's an app or a notebook
     if as_app:
-        print(f"Exporting {notebook_path} to {output_path} as app")
+        logger.info(f"Exporting {notebook_path} to {output_path} as app")
         cmd.extend(["--mode", "run", "--no-show-code"])  # Apps run in "run" mode with hidden code
     else:
-        print(f"Exporting {notebook_path} to {output_path} as notebook")
+        logger.info(f"Exporting {notebook_path} to {output_path} as notebook")
         cmd.extend(["--mode", "edit"])  # Notebooks run in "edit" mode
 
     try:
@@ -65,21 +76,22 @@ def _export_html_wasm(notebook_path: Path, output_dir: Path, as_app: bool = Fals
         cmd.extend([str(notebook_path), "-o", str(output_file)])
 
         # Run marimo export command
-        print(cmd)
+        logger.debug(f"Running command: {cmd}")
         subprocess.run(cmd, capture_output=True, text=True, check=True)
+        logger.info(f"Successfully exported {notebook_path}")
         return True
     except subprocess.CalledProcessError as e:
         # Handle marimo export errors
-        warnings.warn(f"Error exporting {notebook_path}:")
-        warnings.warn(e.stderr)
+        logger.error(f"Error exporting {notebook_path}:")
+        logger.error(f"Command output: {e.stderr}")
         return False
     except Exception as e:
         # Handle unexpected errors
-        warnings.warn(f"Unexpected error exporting {notebook_path}: {e}")
+        logger.error(f"Unexpected error exporting {notebook_path}: {e}")
         return False
 
 
-def generate_index(output_dir: Path, notebooks_data: List[dict] | None = None, apps_data: List[dict] | None = None) -> None:
+def _generate_index(output_dir: Path, template_file: Path, notebooks_data: List[dict] | None = None, apps_data: List[dict] | None = None) -> None:
     """Generate an index.html file that lists all the notebooks.
 
     This function creates an HTML index page that displays links to all the exported
@@ -90,11 +102,12 @@ def generate_index(output_dir: Path, notebooks_data: List[dict] | None = None, a
         notebooks_data (List[dict]): List of dictionaries with data for notebooks
         apps_data (List[dict]): List of dictionaries with data for apps
         output_dir (Path): Directory where the index.html file will be saved
+        template_file (Path, optional): Path to the template file. If None, uses the default template.
 
     Returns:
         None
     """
-    print("Generating index.html")
+    logger.info("Generating index.html")
 
     # Create the full path for the index.html file
     index_path: Path = output_dir / "index.html"
@@ -103,15 +116,14 @@ def generate_index(output_dir: Path, notebooks_data: List[dict] | None = None, a
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        # Set up Jinja2 environment
-        template_dir = Path(__file__).parent / "templates"
+        # Set up Jinja2 environment and load template
+        template_dir = template_file.parent
+        template_name = template_file.name
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(template_dir),
             autoescape=jinja2.select_autoescape(["html", "xml"])
         )
-
-        # Load the template
-        template = env.get_template("index.html.j2")
+        template = env.get_template(template_name)
 
         # Render the template with notebook and app data
         rendered_html = template.render(notebooks=notebooks_data, apps=apps_data)
@@ -119,16 +131,17 @@ def generate_index(output_dir: Path, notebooks_data: List[dict] | None = None, a
         # Write the rendered HTML to the index.html file
         with open(index_path, "w") as f:
             f.write(rendered_html)
+        logger.info(f"Successfully generated index.html at {index_path}")
 
     except IOError as e:
         # Handle file I/O errors
-        print(f"Error generating index.html: {e}")
+        logger.error(f"Error generating index.html: {e}")
     except jinja2.exceptions.TemplateError as e:
         # Handle template errors
-        print(f"Error rendering template: {e}")
+        logger.error(f"Error rendering template: {e}")
 
 
-def export(folder: Path, output_dir: Path, as_app: bool=False) -> List[dict]:
+def _export(folder: Path, output_dir: Path, as_app: bool=False) -> List[dict]:
     """Export all marimo notebooks in a folder to HTML/WebAssembly format.
 
     This function finds all Python files in the specified folder and exports them
@@ -145,15 +158,16 @@ def export(folder: Path, output_dir: Path, as_app: bool=False) -> List[dict]:
     """
     # Check if the folder exists
     if not folder.exists():
-        warnings.warn(f"Directory not found: {folder}")
+        logger.warning(f"Directory not found: {folder}")
         return []
 
     # Find all Python files recursively in the folder
     notebooks = list(folder.rglob("*.py"))
+    logger.debug(f"Found {len(notebooks)} Python files in {folder}")
 
     # Exit if no notebooks were found
     if not notebooks:
-        warnings.warn(f"No notebooks found in {folder}!")
+        logger.warning(f"No notebooks found in {folder}!")
         return []
 
     # For each successfully exported notebook, add its data to the notebook_data list
@@ -166,11 +180,14 @@ def export(folder: Path, output_dir: Path, as_app: bool=False) -> List[dict]:
         if _export_html_wasm(nb, output_dir, as_app=as_app)
     ]
 
+    logger.info(f"Successfully exported {len(notebook_data)} out of {len(notebooks)} files from {folder}")
     return notebook_data
 
-
-def main() -> None:
-    """Main function to build marimo notebooks.
+def main(
+    output_dir: Union[str, Path] = "_site",
+    template: Union[str, Path] = "templates/index.html.j2",
+) -> None:
+    """Main function to export marimo notebooks.
 
     This function:
     1. Parses command line arguments
@@ -179,34 +196,40 @@ def main() -> None:
 
     Command line arguments:
         --output-dir: Directory where the exported files will be saved (default: _site)
+        --template: Path to the template file (default: templates/index.html.j2)
 
     Returns:
         None
     """
-    # Set up command line argument parsing
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Build marimo notebooks")
-    parser.add_argument(
-        "--output-dir", default="_site", help="Output directory for built files"
-    )
-    args: argparse.Namespace = parser.parse_args()
+    logger.info("Starting marimo build process")
 
-    # Convert output_dir to Path
-    output_dir: Path = Path(args.output_dir)
+    # Convert output_dir explicitly to Path (not done by fire)
+    output_dir: Path = Path(output_dir)
+    logger.info(f"Output directory: {output_dir}")
+
+    # Make sure the output directory exists
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Convert template to Path if provided
+    template_file: Path = Path(template)
+    logger.info(f"Using template file: {template_file}")
 
     # Export notebooks from the notebooks/ directory
-    notebooks_data = export(Path("notebooks"), output_dir, as_app=False)
+    notebooks_data = _export(Path("notebooks"), output_dir, as_app=False)
 
     # Export apps from the apps/ directory
-    apps_data = export(Path("apps"), output_dir, as_app=True)
+    apps_data = _export(Path("apps"), output_dir, as_app=True)
 
     # Exit if no notebooks or apps were found
     if not notebooks_data and not apps_data:
-        warnings.warn("No notebooks or apps found!")
+        logger.warning("No notebooks or apps found!")
         return
 
     # Generate the index.html file that lists all notebooks and apps
-    generate_index(output_dir=output_dir, notebooks_data=notebooks_data, apps_data=apps_data)
+    _generate_index(output_dir=output_dir, notebooks_data=notebooks_data, apps_data=apps_data, template_file=template_file)
+
+    logger.info(f"Build completed successfully. Output directory: {output_dir}")
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    fire.Fire(main)

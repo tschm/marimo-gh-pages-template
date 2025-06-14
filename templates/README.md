@@ -80,7 +80,7 @@ uv run .github/scripts/build.py --output-dir _site --template templates/your-cus
 This repository includes two example templates:
 
 1. `bare.html.j2`: A minimal template with basic styling
-2. `.github/scripts/templates/index.html.j2`: The default template with more styling and a footer
+2. `index.html.j2`: The default template with more styling and a footer
 
 ## Best Practices
 
