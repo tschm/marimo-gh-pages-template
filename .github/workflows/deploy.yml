@@ -15,7 +15,7 @@ jobs:
     steps:
       # Check out the repository code
       - name: Export notebooks and build index.html
-        uses: jebel-quant/marimushka/actions/export@v0.0.22
+        uses: jebel-quant/marimushka/actions/export@v0.0.21
         with:
           apps: 'apps'
           notebooks: 'notebooks'
