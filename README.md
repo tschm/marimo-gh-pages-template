@@ -40,8 +40,7 @@ df = pl.read_csv(mo.notebook_location() / "public" / "penguins.csv")
 This repository includes several templates for the generated site:
 
 1. `index.html.j2` (default): A template with styling and a footer
-2. `bare.html.j2`: A minimal template with basic styling
-3. `tailwind.html.j2`: A minimal and lean template using Tailwind CSS
+2. `tailwind.html.j2`: A minimal and lean template using Tailwind CSS
 
 To use a specific template, pass the `--template` parameter to the build script:
 

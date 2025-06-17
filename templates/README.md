@@ -77,9 +77,9 @@ uv run .github/scripts/build.py --output-dir _site --template templates/your-cus
 
 ## Example Templates
 
-This repository includes three example templates:
+This repository includes two example templates:
 
-1. `index.html.j2`: A less lean template with more styling and a footer
+1. `index.html.j2`: A template with more styling and a footer
 2. `tailwind.html.j2`: A minimal and lean template using Tailwind CSS
 
 ## Best Practices

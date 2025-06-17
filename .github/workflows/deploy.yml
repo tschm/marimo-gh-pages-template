@@ -1,27 +1,35 @@
 # This workflow builds and deploys marimo notebooks to GitHub Pages
 # It runs automatically when changes are pushed to the main branch or can be triggered manually
+# The workflow converts Python notebooks to WebAssembly for interactive web experiences
 
 name: Deploy to GitHub Pages
 
 # Defines when the workflow will run
 on:
   push:
-    branches: ['main']  # Trigger on pushes to main branch
-  workflow_dispatch:    # Allow manual triggering from the GitHub UI
+    branches: ['main']  # Trigger on pushes to main branch - automatic deployment
+  workflow_dispatch:    # Allow manual triggering from the GitHub UI - for on-demand builds
 
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # The build job exports marimo notebooks to static HTML/WebAssembly
+  # This job handles the entire process from checkout to deployment
   build:
-    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner for better compatibility and security
     steps:
-      # Check out the repository code
-      - uses: actions/checkout@v4
+      # Check out the repository code to access notebooks and configuration
+      # This step uses GitHub's official checkout action to clone the repository
+      - uses: actions/checkout@v4  # v4 is the latest version as of this workflow creation
 
-      # Check out the repository code
+      # This step exports the marimo notebooks to static HTML/WebAssembly and builds the index page
+      # It uses the marimushka action which is a specialized tool for marimo notebook deployment
       - name: Export notebooks and build index.html
-        uses: jebel-quant/marimushka/actions/export@v0.0.22
+        uses: jebel-quant/marimushka/actions/export@v0.0.22  # Using a specific version for stability
         with:
-          apps: 'apps'
-          notebooks: 'notebooks'
-          publish: 'true'
-          template: 'templates/tailwind.html.j2'
+          # Configuration parameters for the export process:
+          apps: 'apps'                 # Directory containing app notebooks (exported in run mode)
+          notebooks: 'notebooks'       # Directory containing regular notebooks (exported as static HTML files)
+          notebooks_wasm: 'notebooks'  # Directory containing notebooks for interactive use
+          publish: 'true'              # Enable GitHub Pages publishing of the generated site
+
+          template: 'templates/tailwind.html.j2'  # Custom template for the index page using Tailwind CSS
