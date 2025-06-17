@@ -23,6 +23,5 @@ jobs:
         with:
           apps: 'apps'
           notebooks: 'notebooks'
-          notebooks_wasm: 'notebooks'
           publish: 'true'
           template: 'templates/tailwind.html.j2'
