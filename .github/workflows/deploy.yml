@@ -24,12 +24,50 @@ jobs:
       # This step exports the marimo notebooks to static HTML/WebAssembly and builds the index page
       # It uses the marimushka action which is a specialized tool for marimo notebook deployment
       - name: Export notebooks and build index.html
-        uses: jebel-quant/marimushka/actions/export@v0.0.22  # Using a specific version for stability
+        uses: jebel-quant/marimushka@v0.1.1  # Using a specific version for stability
         with:
           # Configuration parameters for the export process:
           apps: 'apps'                 # Directory containing app notebooks (exported in run mode)
           notebooks: 'notebooks'       # Directory containing regular notebooks (exported as static HTML files)
           notebooks_wasm: 'notebooks'  # Directory containing notebooks for interactive use
-          publish: 'true'              # Enable GitHub Pages publishing of the generated site
 
           template: 'templates/tailwind.html.j2'  # Custom template for the index page using Tailwind CSS
+
+  book:
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+
+    permissions:
+      pages: write
+      id-token: write
+
+    #steps:
+    #  - uses: tschm/cradle/actions/book@v0.1.72
+
+    steps:
+      # Download all artifacts from previous jobs
+      # This collects the outputs from both the jupyter and marimo jobs
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Inspect artifacts folder
+        shell: bash
+        run: |
+          tree artifacts
+
+        # Package all artifacts for GitHub Pages deployment
+        # This prepares the combined outputs for deployment
+      - name: Upload static files as artifact
+        id: upload
+        uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
+        with:
+          path: artifacts/  # Path to the directory containing all artifacts
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
