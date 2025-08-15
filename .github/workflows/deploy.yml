@@ -33,7 +33,7 @@ jobs:
       # This step exports the marimo notebooks to static HTML/WebAssembly and builds the index page
       # It uses the marimushka action which is a specialized tool for marimo notebook deployment
       - name: Export notebooks and build index.html
-        uses: jebel-quant/marimushka@v0.1.1  # Using a specific version for stability
+        uses: jebel-quant/marimushka@v0.1.5  # Using a specific version for stability
         with:
           # Configuration parameters for the export process:
           apps: 'apps'                 # Directory containing app notebooks (exported in run mode)
