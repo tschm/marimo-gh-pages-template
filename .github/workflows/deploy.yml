@@ -28,7 +28,7 @@ jobs:
     steps:
       # Check out the repository code to access notebooks and configuration
       # This step uses GitHub's official checkout action to clone the repository
-      - uses: actions/checkout@v4  # v4 is the latest version as of this workflow creation
+      - uses: actions/checkout@v5 is the latest version as of this workflow creation
 
       # This step exports the marimo notebooks to static HTML/WebAssembly and builds the index page
       # It uses the marimushka action which is a specialized tool for marimo notebook deployment
